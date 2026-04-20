@@ -1,378 +1,590 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ordini → Danea Easyfatt</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;min-height:100vh}
-  .container{max-width:900px;margin:0 auto;padding:36px 20px}
-  h1{font-size:20px;font-weight:700;color:#111}
-  .subtitle{font-size:13px;color:#6b7280;margin-top:4px}
-  .mapping-bar{margin-top:10px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:11px;color:#166534}
-  .dropzone{border:2px dashed #d1d5db;border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;background:#fff;margin:24px 0 16px;transition:all 0.15s}
-  .dropzone.drag{border-color:#111;background:#f3f4f6}
-  .dropzone-icon{font-size:28px;margin-bottom:6px}
-  .dropzone-title{font-size:14px;font-weight:600;color:#374151}
-  .dropzone-sub{font-size:12px;color:#9ca3af;margin-top:3px}
-  .status-box{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;margin-bottom:16px}
-  .status-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;margin-bottom:4px}
-  .status-row:last-child{margin-bottom:0}
-  .status-err{color:#ef4444}
-  .actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px}
-  .btn{padding:8px 18px;border-radius:8px;border:none;background:#111;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
-  .btn:hover{background:#333}
-  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px}
-  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  .card-title{font-weight:700;font-size:15px;color:#111}
-  .card-badge{margin-left:10px;font-size:12px;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:20px}
-  .card-date{margin-left:6px;font-size:12px;color:#9ca3af}
-  .card-actions{display:flex;gap:8px}
-  .btn-sm{font-size:12px;padding:4px 12px;border-radius:6px;cursor:pointer}
-  .btn-edit{border:1px solid #d1d5db;background:#fff;color:#374151}
-  .btn-del{border:1px solid #fca5a5;background:#fff;color:#ef4444}
-  .btn-xml{border:none;background:#111;color:#fff}
-  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-  .field-label{font-size:10px;color:#9ca3af;margin-bottom:1px}
-  .field-value{font-size:12px;color:#374151}
-  .field-empty{color:#d1d5db}
-  .section-label{font-size:10px;color:#9ca3af;margin-bottom:6px;font-weight:600}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{text-align:left;padding:4px 8px;color:#6b7280;font-weight:600;background:#f9fafb}
-  td{padding:4px 8px;border-top:1px solid #f3f4f6;color:#374151}
-  .edit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-  input[type=text]{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:4px 7px;font-size:12px}
-  .row-grid{display:grid;grid-template-columns:1fr 2fr 0.6fr 0.5fr 0.7fr 0.7fr auto;gap:5px;margin-bottom:5px;align-items:center}
-  .row-grid input{border:1px solid #d1d5db;border-radius:6px;padding:4px 6px;font-size:11px;min-width:0;width:100%}
-  .btn-add{font-size:12px;padding:4px 12px;border-radius:6px;border:1px dashed #d1d5db;background:#fff;cursor:pointer;color:#6b7280;margin-bottom:12px}
-  .btn-save{padding:6px 16px;border-radius:6px;border:none;background:#111;color:#fff;cursor:pointer;font-size:13px}
-  .empty{text-align:center;color:#9ca3af;font-size:13px;margin-top:60px}
-  .mittente-tag{font-size:11px;color:#2563eb;background:#eff6ff;padding:2px 7px;border-radius:20px;margin-left:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh}
+header{background:#fff;border-bottom:1px solid #e0e0e0;padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:18px;font-weight:600}
+header .badge{font-size:13px;color:#888;background:#f0f0f0;padding:3px 8px;border-radius:4px}
+header .offline{font-size:11px;color:#1a7a3a;background:#d4edda;padding:3px 8px;border-radius:4px;margin-left:auto}
+.main{max-width:960px;margin:0 auto;padding:24px}
+.mapping-bar{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px}
+.mapping-bar strong{color:#1a1a1a;font-size:13px;display:block;margin-bottom:6px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{background:#f0f4ff;color:#3355cc;padding:3px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.drop-zone{border:2px dashed #c0c0c0;border-radius:10px;background:#fff;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:24px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:#3355cc;background:#f0f4ff}
+.drop-zone svg{margin-bottom:10px;opacity:.4}
+.drop-zone p{color:#888;font-size:14px;margin-bottom:4px}
+.drop-zone small{color:#bbb;font-size:12px}
+#fileInput{display:none}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#3355cc;color:#fff}.btn-primary:hover{background:#2244bb}
+.btn-secondary{background:#fff;color:#1a1a1a;border:1px solid #d0d0d0}.btn-secondary:hover{background:#f5f5f5}
+.btn-success{background:#1a7a3a;color:#fff}.btn-success:hover{background:#155f2c}
+.btn-danger{background:#cc3333;color:#fff}.btn-danger:hover{background:#bb2222}
+.btn-small{padding:4px 10px;font-size:11px}
+.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.orders-list{display:flex;flex-direction:column;gap:16px}
+.order-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden}
+.order-card-header{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f0f0f0;background:#fafafa;flex-wrap:wrap}
+.badge-status{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;text-transform:uppercase}
+.badge-ok{background:#d4edda;color:#155724}
+.badge-loading{background:#fff3cd;color:#856404}
+.badge-error{background:#f8d7da;color:#721c24}
+.file-name{font-size:13px;color:#555;flex:1;word-break:break-all;min-width:200px}
+.supplier-box{text-align:right;min-width:180px}
+.supplier-box .supplier{font-size:13px;font-weight:600}
+.supplier-box .client{font-size:12px;color:#888}
+.order-card-body{padding:16px}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.field-group label{display:block;font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.field-group input{width:100%;padding:7px 10px;border:1px solid #d0d0d0;border-radius:6px;font-size:13px;background:#fff}
+.field-group input:focus{outline:none;border-color:#3355cc}
+.items-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.items-table th{text-align:left;padding:7px 10px;background:#f5f5f5;border-bottom:2px solid #e0e0e0;font-weight:600;font-size:11px;color:#666;text-transform:uppercase}
+.items-table td{padding:5px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.items-table td input{width:100%;border:1px solid transparent;border-radius:4px;padding:4px 6px;font-size:13px;background:transparent}
+.items-table td input:hover{border-color:#d0d0d0;background:#fafafa}
+.items-table td input:focus{outline:none;border-color:#3355cc;background:#fff}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #f0f0f0}
+.error-msg{font-size:13px;color:#cc3333;background:#fff0f0;border:1px solid #f5c0c0;border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #e0e0e0;border-top-color:#3355cc;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:60px 20px;color:#aaa}
+.empty-state svg{margin-bottom:12px;opacity:.3}
+.empty-state p{font-size:15px}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.del-row{color:#cc3333;background:none;border:none;cursor:pointer;font-size:16px;padding:0 6px}
+.del-row:hover{color:#991111}
 </style>
 </head>
 <body>
-<div class="container">
-  <div style="margin-bottom:28px">
-    <h1>Ordini → Danea Easyfatt</h1>
-    <p class="subtitle">Carica i PDF degli ordini clienti — i dati vengono estratti automaticamente nel formato XML corretto per Danea.</p>
-    <div class="mapping-bar">
-      <strong>Mappatura attiva:</strong> JUMBO/COLRUYT → Antonio Petti · EDEKA → Bio Verde · MD → La Regina del Pomodoro · LIDL/REWE → rilevato automaticamente dal PDF
+<header>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3355cc" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+  <h1>Ordini → Danea Easyfatt</h1>
+  <span class="badge">Mediterraneo S.r.l.</span>
+  <span class="offline">● Funziona offline</span>
+</header>
+<div class="main">
+  <div class="mapping-bar">
+    <strong>Mappatura clienti → fornitori</strong>
+    <div class="tags">
+      <span class="tag">JUMBO → Antonio Petti</span>
+      <span class="tag">EDEKA → Bio Verde</span>
+      <span class="tag">COLRUYT → Antonio Petti</span>
+      <span class="tag">MD → La Regina del Pomodoro</span>
+      <span class="tag">LIDL → Attianese / Italia Meal</span>
+      <span class="tag">REWE → riconosciuto dal PDF</span>
     </div>
   </div>
-
-  <div class="dropzone" id="dropzone">
-    <div class="dropzone-icon">📄</div>
-    <div class="dropzone-title">Trascina i PDF degli ordini</div>
-    <div class="dropzone-sub">oppure clicca per selezionare — più file contemporaneamente</div>
-    <input type="file" id="fileInput" accept=".pdf" multiple style="display:none"/>
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <p>Trascina i PDF degli ordini qui</p>
+    <small>oppure clicca per selezionarli — più file contemporaneamente</small>
+    <input type="file" id="fileInput" accept=".pdf" multiple/>
   </div>
-
-  <div id="statusBox" style="display:none" class="status-box"></div>
-  <div id="actions" style="display:none" class="actions">
-    <button class="btn" id="exportAllBtn">⬇ Esporta tutti in XML</button>
+  <div class="toolbar" id="toolbar" style="display:none">
+    <button class="btn btn-success" onclick="exportAll()">Esporta tutti in XML</button>
+    <button class="btn btn-secondary" onclick="clearAll()">Svuota lista</button>
   </div>
-  <div id="ordersContainer"></div>
-  <div id="emptyMsg" class="empty">Nessun ordine caricato ancora.</div>
+  <div class="orders-list" id="ordersList">
+    <div class="empty-state" id="emptyState">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>Nessun ordine caricato</p>
+    </div>
+  </div>
 </div>
-
+<div class="toast" id="toast"></div>
 <script>
-const COMPANY = {
-  Name:"Mediterraneo S.r.l.",Address:"Via Toledo 156",Postcode:"80134",
-  City:"Napoli",Province:"NA",Country:"Italia",FiscalCode:"07634931211",
-  VatCode:"07634931211",Tel:"0818507279",Fax:"0818507279",Email:"infomediterraneosrl@gmail.com"
-};
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 let orders = [];
-let fileStatuses = [];
-
-function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");}
-
-function toXML(ords){
-  const docs = ords.map(o=>{
-    const rows=(o.articoli||[]).map(a=>`
-        <Row>
-          <Code>${esc(a.codice)}</Code>
-          <Description>${esc(a.descrizione)}</Description>
-          <Qty>${esc(a.quantita)}</Qty>
-          <Um>${esc(a.um)}</Um>
-          <Price>${esc(a.prezzo)}</Price>
-          <Discounts>${esc(a.sconti)}</Discounts>
-          <WithholdingTax>false</WithholdingTax>
-          <VatCode Perc="${esc(a.iva_perc)}" Class="${esc(a.iva_class)}" Description="${esc(a.iva_desc)}">${esc(a.iva_cod)}</VatCode>
-          <Total>${esc(a.totale)}</Total>
-          <Stock>true</Stock>
-          <Notes>${esc(a.note)}</Notes>
-        </Row>`).join("");
-    return `
-    <Document>
-      <CustomerCode>${esc(o.customer_code)}</CustomerCode>
-      <CustomerWebLogin></CustomerWebLogin>
-      <CustomerName>${esc(o.customer_name)}</CustomerName>
-      <CustomerAddress>${esc(o.customer_address)}</CustomerAddress>
-      <CustomerPostcode>${esc(o.customer_postcode)}</CustomerPostcode>
-      <CustomerCity>${esc(o.customer_city)}</CustomerCity>
-      <CustomerProvince>${esc(o.customer_province)}</CustomerProvince>
-      <CustomerCountry>${esc(o.customer_country)}</CustomerCountry>
-      <CustomerVatCode>${esc(o.customer_vat)}</CustomerVatCode>
-      <CustomerPec>${esc(o.customer_pec)}</CustomerPec>
-      <CustomerEInvoiceDestCode>${esc(o.customer_sdi)}</CustomerEInvoiceDestCode>
-      <DocumentType>C</DocumentType>
-      <Date>${esc(o.data_emissione)}</Date>
-      <Number>${esc(o.numero_ordine)}</Number>
-      <Numbering>${esc(o.numerazione)}</Numbering>
-      <CostDescription></CostDescription><CostVatCode></CostVatCode><CostAmount></CostAmount>
-      <ContribDescription></ContribDescription><ContribPerc></ContribPerc>
-      <ContribSubjectToWithholdingTax></ContribSubjectToWithholdingTax>
-      <ContribAmount></ContribAmount><ContribVatCode></ContribVatCode>
-      <TotalWithoutTax>${esc(o.totale_imponibile)}</TotalWithoutTax>
-      <VatAmount>${esc(o.totale_iva)}</VatAmount>
-      <WithholdingTaxAmount>0</WithholdingTaxAmount>
-      <WithholdingTaxAmountB>0</WithholdingTaxAmountB>
-      <WithholdingTaxNameB></WithholdingTaxNameB>
-      <Total>${esc(o.totale)}</Total>
-      <PriceList>${esc(o.listino)}</PriceList>
-      <PricesIncludeVat>false</PricesIncludeVat>
-      <TotalSubjectToWithholdingTax>0</TotalSubjectToWithholdingTax>
-      <WithholdingTaxPerc>23</WithholdingTaxPerc>
-      <WithholdingTaxPerc2>20</WithholdingTaxPerc2>
-      <PaymentName>${esc(o.pagamento)}</PaymentName>
-      <PaymentBank>${esc(o.banca)}</PaymentBank>
-      <PaymentAdvanceAmount></PaymentAdvanceAmount>
-      <Carrier></Carrier><TransportReason></TransportReason><GoodsAppearance></GoodsAppearance>
-      <NumOfPieces></NumOfPieces><TransportDateTime></TransportDateTime>
-      <ShipmentTerms></ShipmentTerms><TransportedWeight></TransportedWeight><TrackingNumber></TrackingNumber>
-      <InternalComment>${esc(o.note_interne)}</InternalComment>
-      <CustomField1></CustomField1><CustomField2></CustomField2>
-      <CustomField3></CustomField3><CustomField4></CustomField4><FootNotes></FootNotes>
-      <ExpectedConclusionDate>${esc(o.data_scadenza)}</ExpectedConclusionDate>
-      <SalesAgent>${esc(o.agente)}</SalesAgent>
-      <Rows>${rows}
-      </Rows>
-    </Document>`;
-  }).join("\n");
-  const c=COMPANY;
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<EasyfattDocuments AppVersion="2" Creator="Tool Ordini" CreatorUrl="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://www.danea.it/public/easyfatt-xml.xsd">
-  <Company>
-    <Name>${esc(c.Name)}</Name>
-    <Address>${esc(c.Address)}</Address>
-    <Postcode>${esc(c.Postcode)}</Postcode>
-    <City>${esc(c.City)}</City>
-    <Province>${esc(c.Province)}</Province>
-    <Country>${esc(c.Country)}</Country>
-    <FiscalCode>${esc(c.FiscalCode)}</FiscalCode>
-    <VatCode>${esc(c.VatCode)}</VatCode>
-    <Tel>${esc(c.Tel)}</Tel>
-    <Fax>${esc(c.Fax)}</Fax>
-    <Email>${esc(c.Email)}</Email>
-  </Company>
-  <Documents>
-${docs}
-  </Documents>
-</EasyfattDocuments>`;
-}
-
-function download(content, filename){
-  const blob=new Blob([content],{type:"application/xml"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");a.href=url;a.download=filename;a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function readBase64(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result.split(",")[1]);
-    r.onerror=()=>rej(new Error("Lettura fallita"));
-    r.readAsDataURL(file);
-  });
-}
-
-async function extractFromPDF(file, idx){
-  const base64=await readBase64(file);
-  const resp=await fetch("/api/extract",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({base64, mediaType:"application/pdf"})
-  });
-  if(!resp.ok){const e=await resp.json();throw new Error(e.error||"Errore API");}
-  return await resp.json();
-}
-
-function updateStatusUI(){
-  const box=document.getElementById("statusBox");
-  if(fileStatuses.length===0){box.style.display="none";return;}
-  box.style.display="block";
-  box.innerHTML=fileStatuses.map(f=>`
-    <div class="status-row">
-      <span>${f.status==="loading"?"⏳":f.status==="done"?"✅":"❌"}</span>
-      <span style="flex:1">${f.name}</span>
-      <span class="${f.status==="error"?"status-err":""}">${f.status==="loading"?"Elaborazione in corso...":f.status==="done"?"Estratto":"Errore: "+f.error}</span>
-    </div>`).join("");
-}
-
-function updateActionsUI(){
-  const el=document.getElementById("actions");
-  const btn=document.getElementById("exportAllBtn");
-  if(orders.length===0){el.style.display="none";return;}
-  el.style.display="flex";
-  btn.textContent=orders.length>1?`⬇ Esporta tutti in XML (${orders.length})`:"⬇ Esporta XML";
-}
-
-function renderOrders(){
-  const container=document.getElementById("ordersContainer");
-  const empty=document.getElementById("emptyMsg");
-  empty.style.display=orders.length===0?"block":"none";
-  container.innerHTML="";
-  orders.forEach((o,i)=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`
-      <div class="card-header">
-        <div>
-          <span class="card-title">${o.customer_name||"Fornitore sconosciuto"}</span>
-          <span class="card-badge">Ordine #${o.numero_ordine||"—"}</span>
-          ${o.mittente?`<span class="mittente-tag">da ${o.mittente}</span>`:""}
-          ${o.data_emissione?`<span class="card-date">${o.data_emissione}</span>`:""}
-        </div>
-        <div class="card-actions">
-          <button class="btn-sm btn-edit" onclick="toggleEdit(${i})">✏️ Modifica</button>
-          <button class="btn-sm btn-del" onclick="removeOrder(${i})">✕</button>
-        </div>
-      </div>
-      <div class="grid-4">
-        ${[["P.IVA",o.customer_vat],["Cod.SDI",o.customer_sdi],["Data scadenza",o.data_scadenza],["Agente",o.agente],["Pagamento",o.pagamento],["Listino",o.listino],["Imponibile",o.totale_imponibile],["Totale",o.totale]].map(([l,v])=>`
-        <div><div class="field-label">${l}</div><div class="field-value">${v||'<span class="field-empty">—</span>'}</div></div>`).join("")}
-      </div>
-      <div class="section-label">ARTICOLI (${(o.articoli||[]).length})</div>
-      <table>
-        <thead><tr><th>Codice</th><th>Descrizione</th><th>Qtà</th><th>UM</th><th>Prezzo</th><th>Totale</th></tr></thead>
-        <tbody>${(o.articoli||[]).map(a=>`<tr><td>${a.codice||""}</td><td>${a.descrizione||""}</td><td>${a.quantita||""}</td><td>${a.um||""}</td><td>${a.prezzo||""}</td><td>${a.totale||""}</td></tr>`).join("")}</tbody>
-      </table>`;
-    container.appendChild(card);
-  });
-}
-
-function toggleEdit(i){
-  const o=orders[i];
-  const fields=[
-    ["customer_name","Fornitore (in Danea)"],["customer_code","Cod. Cliente"],["customer_vat","P.IVA"],
-    ["customer_pec","PEC"],["customer_sdi","Cod. SDI"],["customer_address","Indirizzo"],
-    ["customer_postcode","CAP"],["customer_city","Città"],["customer_province","Prov."],
-    ["numero_ordine","N° Ordine"],["numerazione","Numerazione"],["data_emissione","Data Emissione"],
-    ["data_scadenza","Data Scadenza"],["listino","Listino"],["pagamento","Pagamento"],
-    ["banca","Banca/IBAN"],["agente","Agente"],["note_interne","Note Interne"],
-    ["totale_imponibile","Imponibile"],["totale_iva","IVA"],["totale","Totale"]
-  ];
-  const container=document.getElementById("ordersContainer");
-  const cards=container.children;
-  const card=cards[i];
-  const existingForm=card.querySelector(".edit-form");
-  if(existingForm){existingForm.remove();card.querySelector(".btn-edit").textContent="✏️ Modifica";return;}
-  card.querySelector(".btn-edit").textContent="Annulla";
-  const form=document.createElement("div");
-  form.className="edit-form";
-  form.style.marginTop="14px";
-  form.innerHTML=`<div class="edit-grid">${fields.map(([k,l])=>`
-    <div><label style="font-size:10px;color:#6b7280;display:block;margin-bottom:2px">${l}</label>
-    <input type="text" data-key="${k}" value="${esc(o[k]||"")}"/></div>`).join("")}</div>
-    <div class="section-label">Articoli</div>
-    <div id="rowsEdit_${i}">${(o.articoli||[]).map((a,ri)=>`
-    <div class="row-grid" data-ri="${ri}">
-      <input placeholder="Codice" data-k="codice" value="${esc(a.codice||"")}"/>
-      <input placeholder="Descrizione" data-k="descrizione" value="${esc(a.descrizione||"")}"/>
-      <input placeholder="Qtà" data-k="quantita" value="${esc(a.quantita||"")}"/>
-      <input placeholder="UM" data-k="um" value="${esc(a.um||"")}"/>
-      <input placeholder="Prezzo" data-k="prezzo" value="${esc(a.prezzo||"")}"/>
-      <input placeholder="Totale" data-k="totale" value="${esc(a.totale||"")}"/>
-      <button onclick="removeRow(${i},${ri})" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:14px">✕</button>
-    </div>`).join("")}</div>
-    <button class="btn-add" onclick="addRow(${i})">+ Aggiungi articolo</button>
-    <button class="btn-save" onclick="saveEdit(${i})">Salva</button>`;
-  card.appendChild(form);
-}
-
-function addRow(i){
-  const container=document.getElementById(`rowsEdit_${i}`);
-  const ri=container.children.length;
-  const div=document.createElement("div");
-  div.className="row-grid";div.dataset.ri=ri;
-  div.innerHTML=`<input placeholder="Codice" data-k="codice" value=""/>
-    <input placeholder="Descrizione" data-k="descrizione" value=""/>
-    <input placeholder="Qtà" data-k="quantita" value=""/>
-    <input placeholder="UM" data-k="um" value=""/>
-    <input placeholder="Prezzo" data-k="prezzo" value=""/>
-    <input placeholder="Totale" data-k="totale" value=""/>
-    <button onclick="removeRow(${i},${ri})" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:14px">✕</button>`;
-  container.appendChild(div);
-}
-
-function removeRow(i,ri){
-  const container=document.getElementById(`rowsEdit_${i}`);
-  const rows=container.querySelectorAll(".row-grid");
-  if(rows[ri])rows[ri].remove();
-}
-
-function saveEdit(i){
-  const card=document.getElementById("ordersContainer").children[i];
-  const form=card.querySelector(".edit-form");
-  const updated={...orders[i]};
-  form.querySelectorAll("[data-key]").forEach(inp=>{updated[inp.dataset.key]=inp.value;});
-  const rowEls=document.getElementById(`rowsEdit_${i}`).querySelectorAll(".row-grid");
-  updated.articoli=Array.from(rowEls).map(row=>{
-    const a={...{}};
-    row.querySelectorAll("[data-k]").forEach(inp=>{a[inp.dataset.k]=inp.value;});
-    return a;
-  });
-  orders[i]=updated;
-  renderOrders();
-  updateActionsUI();
-}
-
-function removeOrder(i){
-  orders.splice(i,1);
-  renderOrders();
-  updateActionsUI();
-}
-
-async function processFiles(files){
-  const pdfs=Array.from(files).filter(f=>f.type==="application/pdf");
-  if(!pdfs.length)return;
-  const startIdx=fileStatuses.length;
-  pdfs.forEach(f=>fileStatuses.push({name:f.name,status:"loading"}));
-  updateStatusUI();
-  for(let i=0;i<pdfs.length;i++){
-    try{
-      const data=await extractFromPDF(pdfs[i],startIdx+i);
-      orders.push(data);
-      fileStatuses[startIdx+i].status="done";
-    }catch(e){
-      fileStatuses[startIdx+i].status="error";
-      fileStatuses[startIdx+i].error=e.message;
+async function extractPdfText(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  let fullText = '';
+  const lines = [];
+  for(let i=1;i<=pdf.numPages;i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const items = content.items.map(it=>({str:it.str,x:it.transform[4],y:it.transform[5]}));
+    items.sort((a,b)=>Math.abs(b.y-a.y)<2?a.x-b.x:b.y-a.y);
+    let currentY=null, currentLine=[];
+    for(const it of items){
+      if(currentY===null||Math.abs(it.y-currentY)<2){
+        currentLine.push(it.str);
+        currentY=it.y;
+      }else{
+        lines.push(currentLine.join(' ').trim());
+        currentLine=[it.str];
+        currentY=it.y;
+      }
     }
-    updateStatusUI();
-    renderOrders();
-    updateActionsUI();
+    if(currentLine.length)lines.push(currentLine.join(' ').trim());
+    fullText += content.items.map(it=>it.str).join(' ')+'\n';
+  }
+  return {fullText, lines:lines.filter(l=>l.length>0)};
+}
+function detectClient(text){
+  const t = text.toUpperCase();
+  if(t.includes('REWE GROUP BUYING')||t.includes('REWE GROUP'))return 'REWE';
+  if(t.includes('EDEKA'))return 'EDEKA';
+  if(t.includes('COLRUYT'))return 'COLRUYT';
+  if(t.includes('MD S.P.A')||t.includes('MD SPA')||t.includes('MD S P A'))return 'MD';
+  if(t.includes('JUMBO'))return 'JUMBO';
+  if(t.includes('LIDL')||t.includes('WENZEL')||t.includes('MUELLENDORF'))return 'LIDL';
+  return 'UNKNOWN';
+}
+function detectSupplier(client, text){
+  const t = text.toUpperCase();
+  switch(client){
+    case 'JUMBO': return 'Antonio Petti';
+    case 'EDEKA': return 'Bio Verde';
+    case 'COLRUYT': return 'Antonio Petti';
+    case 'MD': return 'La Regina del Pomodoro';
+    case 'LIDL':
+      if(t.includes('ATTIANESE'))return 'Attianese S.p.A.';
+      if(t.includes('ITALIA MEAL'))return 'Italia Meal';
+      return 'Attianese S.p.A.';
+    case 'REWE':
+      if(t.includes('ANTONIO PETTI'))return 'Antonio Petti';
+      if(t.includes('ATTIANESE'))return 'Attianese S.p.A.';
+      if(t.includes('BIO VERDE'))return 'Bio Verde';
+      if(t.includes('ITALIAN FOOD')&&!t.includes('ANTONIO PETTI'))return 'Italian Food';
+      if(t.includes('ITALIA MEAL'))return 'Italia Meal';
+      return '';
+    default: return '';
   }
 }
-
-// Events
-const dz=document.getElementById("dropzone");
-const fi=document.getElementById("fileInput");
-dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
-dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
-dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");processFiles(e.dataTransfer.files);});
-dz.addEventListener("click",()=>fi.click());
-fi.addEventListener("change",e=>processFiles(e.target.files));
-document.getElementById("exportAllBtn").addEventListener("click",()=>{
-  const fname=orders.length===1?`ordine_${orders[0].numero_ordine||1}.xml`:"ordini_danea.xml";
-  download(toXML(orders),fname);
-});
-
-renderOrders();
+function parseREWE(text, lines){
+  const data = {items:[]};
+  let m = text.match(/(\d{10})\s*\/\s*(\d{2}\.\d{2}\.\d{4})/);
+  if(m){data.orderNumber=m[1];data.orderDate=m[2].replace(/\./g,'/');}
+  m = text.match(/Data consegna[:\s]+(\d{2}\.\d{2}\.\d{4})/i);
+  if(m)data.expiryDate = m[1].replace(/\./g,'/');
+  m = text.match(/Riferimento per contratto\s+(\d+)/i);
+  if(m)data.contractNumber = m[1];
+  // Trova blocchi articolo: "00010 CODICE DESCRIZIONE ... PREZZO_UNITARIO TOTALE"
+  // Strategia: cerca tutti i blocchi che iniziano con posizione 00010, 00020...
+  const posRegex = /(\d{5})\s+(\d{3,6})\s+([^\n]+?)(?=(?:\d{5}\s+\d{3,6})|Valore netto totale|$)/gs;
+  const segments = [];
+  let lastIdx = 0;
+  const positions = [];
+  const posFinder = /\b(000\d0)\s+(\d{3,6})\b/g;
+  let pm;
+  while((pm=posFinder.exec(text))!==null){
+    positions.push({idx:pm.index, pos:pm[1], code:pm[2]});
+  }
+  positions.push({idx:text.length});
+  for(let i=0;i<positions.length-1;i++){
+    const block = text.substring(positions[i].idx, positions[i+1].idx);
+    // Descrizione: dopo il codice fino a "1 = 0 CT"
+    const descM = block.match(new RegExp(positions[i].code+'\\s+(.+?)(?=1\\s*=\\s*0\\s*CT|\\d+[,\\.]\\d+\\s+Cartone)','s'));
+    const description = descM?descM[1].replace(/\s+/g,' ').trim():'';
+    // Qtà pezzi: "47,520 Pezzo" o "55,296 Pezzo"
+    const qtyM = block.match(/([\d]+(?:[,\.]\d+)?)\s+Pezzo/);
+    const qty = qtyM?qtyM[1].replace(/\./g,'').replace(',','.'):'';
+    // Prezzo: "50.00/100" significa 50 per 100 → 0.50/pz
+    const priceM = block.match(/([\d]+[\.,]\d+)\/100/);
+    const price = priceM?(parseFloat(priceM[1].replace(',','.'))/100).toFixed(4):'';
+    // EAN
+    const eanM = block.match(/Codice EAN\s+(\d+)/);
+    data.items.push({
+      code:positions[i].code,
+      ean:eanM?eanM[1]:'',
+      description:description,
+      qty:qty,
+      um:'PZ',
+      price:price,
+      vat:'10'
+    });
+  }
+  return data;
+}
+function parseEDEKA(text, lines){
+  const data = {items:[]};
+  let m = text.match(/Belegnummer[:\s]+(\d+)/i);
+  if(m)data.orderNumber = m[1];
+  m = text.match(/Datum[:\s]+(\d{2}\.\d{2}\.\d{4})/i);
+  if(m)data.orderDate = m[1].replace(/\./g,'/');
+  m = text.match(/Ankunftsdatum[:\s]+(\d{2}\.\d{2}\.\d{4})/i);
+  if(m)data.expiryDate = m[1].replace(/\./g,'/');
+  m = text.match(/\b(\d{9})\b/);
+  if(m)data.contractNumber = m[1];
+  // Layout: riga con molti numeri + descrizione nella riga sotto
+  // es: "10 4044703002356 2767998000 395009180 2,254 12 27,048 24,343.20 0.7250 19,609.80"
+  // poi: "DELTA Kidneybohnen 800g 31.12.2027 KOA Dose ST 1 ST"
+  for(let i=0;i<lines.length;i++){
+    const line = lines[i];
+    // cerca riga che inizia con numero posizione e contiene EAN 13 cifre
+    const m2 = line.match(/^(\d{1,3})\s+(\d{13})\s+(\d{7,10})\s+(\d{9})\s+([\d,\.]+)\s+(\d+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d\.]+)\s+([\d,\.]+)/);
+    if(m2){
+      const nextLine = lines[i+1]||'';
+      // descrizione: tutto fino a data MHD o "KOA"
+      const descM = nextLine.match(/^(.+?)(?=\s+\d{2}\.\d{2}\.\d{4}|\s+KOA|\s+\d{10}|$)/);
+      const description = descM?descM[1].trim():nextLine.split(/\s+\d/)[0].trim();
+      data.items.push({
+        code:m2[3],
+        ean:m2[2],
+        description:description,
+        qty:m2[7].replace(/\./g,'').replace(',','.'),
+        um:'PZ',
+        price:m2[9],
+        vat:'10'
+      });
+    }
+  }
+  return data;
+}
+function parseCOLRUYT(text, lines){
+  const data = {items:[]};
+  let m = text.match(/(POF\d+)/);
+  if(m)data.orderNumber = m[1];
+  m = text.match(/(\d{4}\/\d{2}\/\d{2})/);
+  if(m){
+    const parts = m[1].split('/');
+    data.expiryDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    data.orderDate = data.expiryDate;
+  }
+  // Layout: NO.ART | LIBELLE | QUANTITE
+  // "12868 / 2024/2025 / BONI CONCEN.TOMATES140G / 3300"
+  for(const line of lines){
+    // cerca riga con codice + descrizione + quantità finale
+    const mm = line.match(/^(\d{4,6})\s+(?:(\d{4}\/\d{4})\s+)?(.+?)\s+(\d{2,6})\s*$/);
+    if(mm && !mm[3].toUpperCase().includes('LIBELLE') && !mm[3].toUpperCase().includes('QUANTITE') && mm[3].length>5){
+      data.items.push({
+        code:mm[1],
+        ean:'',
+        description:mm[3].trim(),
+        qty:mm[4],
+        um:'PZ',
+        price:'',
+        vat:'10'
+      });
+    }
+  }
+  return data;
+}
+function parseMD(text, lines){
+  const data = {items:[]};
+  let m = text.match(/Ns\.Ord\.\s+(\d+\/\d+)/i);
+  if(m)data.orderNumber = m[1];
+  m = text.match(/Del\s+(\d{2}\/\d{2}\/\d{4})/i);
+  if(m)data.orderDate = m[1];
+  m = text.match(/Data Consegna\s+(\d{2}\/\d{2}\/\d{4})/i);
+  if(m)data.expiryDate = m[1];
+  m = text.match(/ACCORDO\s+(\d+\/\d+)/i);
+  if(m)data.contractNumber = m[1];
+  // Articolo: "065682 PASSATA BASILICO GUSTATO ML720 12 2.160 30,00 12 / 6 0,7"
+  // campi: codice, descrizione, unità-imb, ordine-colli, omaggio, cartxstr, prezzo
+  for(const line of lines){
+    const mm = line.match(/^(\d{6})\s+(.+?)\s+(\d+)\s+([\d\.,]+)\s+([\d,\.]+)\s+(\d+\s*\/\s*\d+)\s+([\d,\.]+)\s*$/);
+    if(mm){
+      // qty in pezzi = colli * unità_imb
+      const colli = parseFloat(mm[4].replace(/\./g,'').replace(',','.'))||0;
+      const uImb = parseInt(mm[3])||1;
+      const pezzi = colli * uImb;
+      data.items.push({
+        code:mm[1],
+        ean:'',
+        description:mm[2].trim(),
+        qty:String(pezzi),
+        um:'PZ',
+        price:mm[7].replace(',','.'),
+        vat:'10'
+      });
+    }
+  }
+  return data;
+}
+function parseJUMBO(text, lines){
+  const data = {items:[], _note:'Layout JUMBO non ancora calibrato'};
+  const m = text.match(/\b(\d{6,12})\b/);
+  if(m)data.orderNumber = m[1];
+  return data;
+}
+function parseLIDL(text, lines){
+  const data = {items:[]};
+  let m = text.match(/\b([A-Z]\d{7,10}[A-Z]?\d*)\b/);
+  if(m)data.orderNumber = m[1];
+  m = text.match(/Datum[\s\S]{0,30}?(\d{2}\.\d{2}\.\d{4})/i);
+  if(m)data.orderDate = m[1].replace(/\./g,'/');
+  m = text.match(/eta\.?\s+(\d{2}\.\d{2}\.\d{4})/i);
+  if(m)data.expiryDate = m[1].replace(/\./g,'/');
+  // Descrizione: dopo "Artikel"
+  const bezM = text.match(/Artikel\s+([A-Z][A-Z0-9\s\-X]+(?:DOSE|DS|KRT|ML))/i);
+  let description = bezM?bezM[1].trim().replace(/\s+/g,' '):'';
+  if(!description){
+    const altM = text.match(/(BIO\s+[A-Z\s]+\d+X\d+\s*ML[\w\-]*)/i);
+    if(altM)description = altM[1].trim();
+  }
+  // Quantità: "8.424 KRT"
+  const qtyM = text.match(/([\d\.,]+)\s+KRT/);
+  // Codice interno: "1208"
+  const codeM = text.match(/\b(\d{4})\s+12X/);
+  data.items.push({
+    code: codeM?codeM[1]:'',
+    ean:'',
+    description: description||'BIO GEHACKTE TOMATEN',
+    qty: qtyM?qtyM[1].replace(/\./g,'').replace(',','.'):'',
+    um:'CT',
+    price:'',
+    vat:'10'
+  });
+  return data;
+}
+async function parsePdf(file){
+  const {fullText, lines} = await extractPdfText(file);
+  const client = detectClient(fullText);
+  const supplier = detectSupplier(client, fullText);
+  let data = {items:[]};
+  switch(client){
+    case 'REWE': data = parseREWE(fullText, lines); break;
+    case 'EDEKA': data = parseEDEKA(fullText, lines); break;
+    case 'COLRUYT': data = parseCOLRUYT(fullText, lines); break;
+    case 'MD': data = parseMD(fullText, lines); break;
+    case 'JUMBO': data = parseJUMBO(fullText, lines); break;
+    case 'LIDL': data = parseLIDL(fullText, lines); break;
+    default: data._note = 'Cliente non riconosciuto';
+  }
+  data.client = client;
+  data.supplier = supplier;
+  return data;
+}
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+dropZone.addEventListener('dragover', e=>{e.preventDefault();dropZone.classList.add('drag-over')});
+dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e=>{e.preventDefault();dropZone.classList.remove('drag-over');handleFiles(e.dataTransfer.files)});
+fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+function handleFiles(files){
+  Array.from(files).forEach(f=>{
+    if(f.type!=='application/pdf'){showToast('Solo PDF: '+f.name);return}
+    const id = Date.now()+'_'+Math.random().toString(36).slice(2);
+    orders.push({id, fileName:f.name, status:'loading', data:null});
+    renderOrders();
+    parsePdf(f).then(d=>{
+      const o = orders.find(x=>x.id===id);
+      if(!o)return;
+      o.status = 'ok';
+      o.data = d;
+      renderOrders();
+    }).catch(e=>{
+      const o = orders.find(x=>x.id===id);
+      if(!o)return;
+      o.status = 'error';
+      o.error = e.message;
+      renderOrders();
+    });
+  });
+}
+function renderOrders(){
+  const list = document.getElementById('ordersList');
+  const empty = document.getElementById('emptyState');
+  const toolbar = document.getElementById('toolbar');
+  if(orders.length===0){
+    empty.style.display='block';
+    toolbar.style.display='none';
+    list.innerHTML='';
+    list.appendChild(empty);
+    return;
+  }
+  empty.style.display='none';
+  toolbar.style.display='flex';
+  list.innerHTML='';
+  orders.forEach(o=>list.appendChild(buildCard(o)));
+}
+function buildCard(order){
+  const card = document.createElement('div');
+  card.className = 'order-card';
+  let badgeClass='badge-loading', badgeText='Elaborazione...';
+  if(order.status==='ok'){badgeClass='badge-ok';badgeText='Pronto';}
+  if(order.status==='error'){badgeClass='badge-error';badgeText='Errore';}
+  const d = order.data||{};
+  card.innerHTML = `
+  <div class="order-card-header">
+    ${order.status==='loading'?'<div class="spinner"></div>':''}
+    <span class="badge-status ${badgeClass}">${badgeText}</span>
+    <span class="file-name">${esc(order.fileName)}</span>
+    <div class="supplier-box">
+      <div class="supplier">${esc(d.supplier||'—')}</div>
+      <div class="client">Cliente: ${esc(d.client||'—')}</div>
+    </div>
+  </div>
+  ${order.status==='error'<div class="order-card-body"><div class="error-msg">${esc(order.error)}</div><div class="card-actions"><button class="btn btn-danger btn-small" onclick="removeOrder('${order.id}')">Rimuovi</button></div></div>:''}
+  ${order.status==='ok'?buildForm(order):''}
+  `;
+  return card;
+}
+function buildForm(order){
+  const d = order.data;
+  const itemsHtml = (d.items||[]).map((it,i)=>`
+  <tr>
+    <td><input value="${esc(it.code||'')}" onchange="upd('${order.id}',${i},'code',this.value)" style="width:90px"/></td>
+    <td><input value="${esc(it.description||'')}" onchange="upd('${order.id}',${i},'description',this.value)"/></td>
+    <td><input value="${esc(it.qty||'')}" onchange="upd('${order.id}',${i},'qty',this.value)" style="width:80px"/></td>
+    <td><input value="${esc(it.um||'PZ')}" onchange="upd('${order.id}',${i},'um',this.value)" style="width:60px"/></td>
+    <td><input value="${esc(it.price||'')}" onchange="upd('${order.id}',${i},'price',this.value)" style="width:90px"/></td>
+    <td><input value="${esc(it.vat||'10')}" onchange="upd('${order.id}',${i},'vat',this.value)" style="width:50px"/></td>
+    <td><button class="del-row" onclick="delRow('${order.id}',${i})" title="Elimina">×</button></td>
+  </tr>
+  `).join('');
+  return `
+  <div class="order-card-body">
+    ${d._note<div class="error-msg" style="background:#fff8e0;color:#856404;border-color:#ffd966">${esc(d._note)}</div>:''}
+    <div class="field-grid">
+      <div class="field-group"><label>Fornitore</label><input value="${esc(d.supplier||'')}" onchange="updField('${order.id}','supplier',this.value)"/></div>
+      <div class="field-group"><label>N° Ordine</label><input value="${esc(d.orderNumber||'')}" onchange="updField('${order.id}','orderNumber',this.value)"/></div>
+      <div class="field-group"><label>Data Ordine</label><input value="${esc(d.orderDate||'')}" onchange="updField('${order.id}','orderDate',this.value)" placeholder="GG/MM/AAAA"/></div>
+      <div class="field-group"><label>Data Consegna</label><input value="${esc(d.expiryDate||'')}" onchange="updField('${order.id}','expiryDate',this.value)" placeholder="GG/MM/AAAA"/></div>
+      <div class="field-group"><label>N° Contratto</label><input value="${esc(d.contractNumber||'')}" onchange="updField('${order.id}','contractNumber',this.value)"/></div>
+    </div>
+    <table class="items-table">
+      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qtà</th><th>UM</th><th>Prezzo</th><th>IVA%</th><th></th></tr></thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <button class="btn btn-secondary btn-small" onclick="addRow('${order.id}')">+ Aggiungi riga</button>
+    <div class="card-actions">
+      <button class="btn btn-primary btn-small" onclick="exportOne('${order.id}')">Esporta XML</button>
+      <button class="btn btn-danger btn-small" onclick="removeOrder('${order.id}')">Rimuovi</button>
+    </div>
+  </div>
+  `;
+}
+function upd(id,idx,field,val){
+  const o = orders.find(x=>x.id===id);
+  if(o&&o.data.items[idx])o.data.items[idx][field]=val;
+}
+function updField(id,field,val){
+  const o = orders.find(x=>x.id===id);
+  if(o)o.data[field]=val;
+}
+function addRow(id){
+  const o = orders.find(x=>x.id===id);
+  if(o){o.data.items.push({code:'',description:'',qty:'',um:'PZ',price:'',vat:'10'});renderOrders();}
+}
+function delRow(id,idx){
+  const o = orders.find(x=>x.id===id);
+  if(o){o.data.items.splice(idx,1);renderOrders();}
+}
+function removeOrder(id){
+  orders = orders.filter(o=>o.id!==id);
+  renderOrders();
+}
+function clearAll(){
+  if(confirm('Svuotare la lista?')){orders=[];renderOrders();}
+}
+function buildXmlForOrder(order){
+  const d = order.data;
+  const numbering = d.client?'/'+d.client:'';
+  const items = (d.items||[]).map(it=>{
+    const qty = parseFloat(String(it.qty||'0').replace(',','.'))||0;
+    const price = parseFloat(String(it.price||'0').replace(',','.'))||0;
+    const vat = parseFloat(String(it.vat||'10').replace(',','.'))||10;
+    const total = (qty*price).toFixed(2);
+    return `      <Row>
+        <Code>${esc(it.code||'')}</Code>
+        <Description>${esc(it.description||'')}</Description>
+        <Qty>${qty}</Qty>
+        <QtyReal>${qty}</QtyReal>
+        <Um>${esc(it.um||'PZ')}</Um>
+        <Price>${price.toFixed(4)}</Price>
+        <Discounts></Discounts>
+        <VatCode Perc="${vat}" Class="Imponibile" Description="Aliquota ${vat}%">${vat}</VatCode>
+        <Total>${total}</Total>
+      </Row>`;
+  }).join('\n');
+  const orderDate = convertDate(d.orderDate);
+  const expiryDate = convertDate(d.expiryDate);
+  return `  <Document>
+    <CustomerCode></CustomerCode>
+    <CustomerName>${esc(d.supplier||'')}</CustomerName>
+    <CustomerAddress></CustomerAddress>
+    <CustomerPostcode></CustomerPostcode>
+    <CustomerCity></CustomerCity>
+    <CustomerProvince></CustomerProvince>
+    <CustomerCountry></CustomerCountry>
+    <CustomerVatCode></CustomerVatCode>
+    <CustomerFiscalCode></CustomerFiscalCode>
+    <DocumentType>C</DocumentType>
+    <Date>${orderDate}</Date>
+    <Number>${esc(d.orderNumber||'')}</Number>
+    <Numbering>${numbering}</Numbering>
+    <CostDescription></CostDescription>
+    <CostVatCode></CostVatCode>
+    <CostAmount></CostAmount>
+    <ContribDescription></ContribDescription>
+    <ContribPerc></ContribPerc>
+    <ContribSubjectToWithholdingTax></ContribSubjectToWithholdingTax>
+    <ContribAmount></ContribAmount>
+    <ContribVatCode></ContribVatCode>
+    <TotalWithoutTax></TotalWithoutTax>
+    <VatAmount></VatAmount>
+    <WithholdingTaxAmount></WithholdingTaxAmount>
+    <Total></Total>
+    <PriceList></PriceList>
+    <PaymentName></PaymentName>
+    <PaymentBank></PaymentBank>
+    <Agent></Agent>
+    <ExpiryDate>${expiryDate}</ExpiryDate>
+    <InternalNote>Contratto: ${esc(d.contractNumber||'')} - Cliente finale: ${esc(d.client||'')}</InternalNote>
+    <CustomerNote></CustomerNote>
+    <FootNotes></FootNotes>
+    <Rows>
+${items}
+    </Rows>
+  </Document>`;
+}
+function convertDate(s){
+  if(!s)return '';
+  const m = s.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{4})/);
+  if(!m)return '';
+  return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+}
+function exportOne(id){
+  const o = orders.find(x=>x.id===id);
+  if(!o||o.status!=='ok')return;
+  const xml = xmlHeader()+buildXmlForOrder(o)+'\n  </Documents>\n</EasyfattDocuments>';
+  downloadXml(xml, `ordine_${o.data.client||'export'}_${o.data.orderNumber||'N'}.xml`);
+}
+function exportAll(){
+  const ready = orders.filter(o=>o.status==='ok');
+  if(ready.length===0){showToast('Nessun ordine pronto');return;}
+  const docs = ready.map(o=>buildXmlForOrder(o)).join('\n');
+  const xml = xmlHeader()+docs+'\n  </Documents>\n</EasyfattDocuments>';
+  downloadXml(xml, `ordini_${new Date().toISOString().slice(0,10)}.xml`);
+}
+function xmlHeader(){
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<EasyfattDocuments AppVersion="2" Creator="Mediterraneo S.r.l." CreatorUrl="" Company="Mediterraneo S.r.l." CompanyAddress="" CompanyPostcode="" CompanyCity="" CompanyProvince="" CompanyCountry="IT" CompanyFiscalCode="" CompanyVatCode="" CompanyTel="" CompanyFax="" CompanyEmail="" CompanyWeb="" CompanyBank1="" CompanyBankIban1="" CompanyBankSwift1="">\n  <Documents>\n`;
+}
+function downloadXml(content, filename){
+  const blob = new Blob([content],{type:'application/xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('XML esportato: '+filename);
+}
+function esc(s){
+  if(s===null||s===undefined)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
 </script>
 </body>
 </html>
