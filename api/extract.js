@@ -11,7 +11,7 @@ export default async function handler(req, res) {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                             contents: [{ parts: [{ inline_data: { mime_type: mediaType || "application/pdf", data: base64 } }, { text: prompt }] }],
-                            generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }h
+                            generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
                   })
           });
           const data = await response.json();
