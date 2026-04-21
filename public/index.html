@@ -72,6 +72,7 @@ header .offline{font-size:11px;color:#1a7a3a;background:#d4edda;padding:3px 8px;
   <span class="badge">Mediterraneo S.r.l.</span>
   <span class="offline">● Funziona offline</span>
 </header>
+
 <div class="main">
   <div class="mapping-bar">
     <strong>Mappatura clienti → fornitori</strong>
@@ -84,27 +85,31 @@ header .offline{font-size:11px;color:#1a7a3a;background:#d4edda;padding:3px 8px;
       <span class="tag">REWE → riconosciuto dal PDF</span>
     </div>
   </div>
+
   <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     <p>Trascina i PDF degli ordini qui</p>
     <small>oppure clicca per selezionarli — più file contemporaneamente</small>
     <input type="file" id="fileInput" accept=".pdf" multiple/>
   </div>
+
   <div class="toolbar" id="toolbar" style="display:none">
     <button class="btn btn-success" onclick="exportAll()">Esporta tutti in XML</button>
     <button class="btn btn-secondary" onclick="clearAll()">Svuota lista</button>
   </div>
+
   <div class="orders-list" id="ordersList">
-    <div class="empty-state" id="emptyState">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <p>Nessun ordine caricato</p>
-    </div>
+    <div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Nessun ordine caricato</p></div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
 let orders = [];
+
 async function extractPdfText(file){
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data:buf}).promise;
@@ -131,6 +136,7 @@ async function extractPdfText(file){
   }
   return {fullText, lines:lines.filter(l=>l.length>0)};
 }
+
 function detectClient(text){
   const t = text.toUpperCase();
   if(t.includes('REWE GROUP BUYING')||t.includes('REWE GROUP'))return 'REWE';
@@ -141,6 +147,7 @@ function detectClient(text){
   if(t.includes('LIDL')||t.includes('WENZEL')||t.includes('MUELLENDORF'))return 'LIDL';
   return 'UNKNOWN';
 }
+
 function detectSupplier(client, text){
   const t = text.toUpperCase();
   switch(client){
@@ -162,6 +169,7 @@ function detectSupplier(client, text){
     default: return '';
   }
 }
+
 function parseREWE(text, lines){
   const data = {items:[]};
   let m = text.match(/(\d{10})\s*\/\s*(\d{2}\.\d{2}\.\d{4})/);
@@ -170,6 +178,7 @@ function parseREWE(text, lines){
   if(m)data.expiryDate = m[1].replace(/\./g,'/');
   m = text.match(/Riferimento per contratto\s+(\d+)/i);
   if(m)data.contractNumber = m[1];
+
   // Trova blocchi articolo: "00010 CODICE DESCRIZIONE ... PREZZO_UNITARIO TOTALE"
   // Strategia: cerca tutti i blocchi che iniziano con posizione 00010, 00020...
   const posRegex = /(\d{5})\s+(\d{3,6})\s+([^\n]+?)(?=(?:\d{5}\s+\d{3,6})|Valore netto totale|$)/gs;
@@ -207,6 +216,7 @@ function parseREWE(text, lines){
   }
   return data;
 }
+
 function parseEDEKA(text, lines){
   const data = {items:[]};
   let m = text.match(/Belegnummer[:\s]+(\d+)/i);
@@ -217,6 +227,7 @@ function parseEDEKA(text, lines){
   if(m)data.expiryDate = m[1].replace(/\./g,'/');
   m = text.match(/\b(\d{9})\b/);
   if(m)data.contractNumber = m[1];
+
   // Layout: riga con molti numeri + descrizione nella riga sotto
   // es: "10 4044703002356 2767998000 395009180 2,254 12 27,048 24,343.20 0.7250 19,609.80"
   // poi: "DELTA Kidneybohnen 800g 31.12.2027 KOA Dose ST 1 ST"
@@ -242,6 +253,7 @@ function parseEDEKA(text, lines){
   }
   return data;
 }
+
 function parseCOLRUYT(text, lines){
   const data = {items:[]};
   let m = text.match(/(POF\d+)/);
@@ -252,6 +264,7 @@ function parseCOLRUYT(text, lines){
     data.expiryDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     data.orderDate = data.expiryDate;
   }
+
   // Layout: NO.ART | LIBELLE | QUANTITE
   // "12868 / 2024/2025 / BONI CONCEN.TOMATES140G / 3300"
   for(const line of lines){
@@ -271,6 +284,7 @@ function parseCOLRUYT(text, lines){
   }
   return data;
 }
+
 function parseMD(text, lines){
   const data = {items:[]};
   let m = text.match(/Ns\.Ord\.\s+(\d+\/\d+)/i);
@@ -281,6 +295,7 @@ function parseMD(text, lines){
   if(m)data.expiryDate = m[1];
   m = text.match(/ACCORDO\s+(\d+\/\d+)/i);
   if(m)data.contractNumber = m[1];
+
   // Articolo: "065682 PASSATA BASILICO GUSTATO ML720 12 2.160 30,00 12 / 6 0,7"
   // campi: codice, descrizione, unità-imb, ordine-colli, omaggio, cartxstr, prezzo
   for(const line of lines){
@@ -303,12 +318,14 @@ function parseMD(text, lines){
   }
   return data;
 }
+
 function parseJUMBO(text, lines){
   const data = {items:[], _note:'Layout JUMBO non ancora calibrato'};
   const m = text.match(/\b(\d{6,12})\b/);
   if(m)data.orderNumber = m[1];
   return data;
 }
+
 function parseLIDL(text, lines){
   const data = {items:[]};
   let m = text.match(/\b([A-Z]\d{7,10}[A-Z]?\d*)\b/);
@@ -339,6 +356,7 @@ function parseLIDL(text, lines){
   });
   return data;
 }
+
 async function parsePdf(file){
   const {fullText, lines} = await extractPdfText(file);
   const client = detectClient(fullText);
@@ -357,12 +375,15 @@ async function parsePdf(file){
   data.supplier = supplier;
   return data;
 }
+
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
+
 dropZone.addEventListener('dragover', e=>{e.preventDefault();dropZone.classList.add('drag-over')});
 dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e=>{e.preventDefault();dropZone.classList.remove('drag-over');handleFiles(e.dataTransfer.files)});
 fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+
 function handleFiles(files){
   Array.from(files).forEach(f=>{
     if(f.type!=='application/pdf'){showToast('Solo PDF: '+f.name);return}
@@ -384,22 +405,22 @@ function handleFiles(files){
     });
   });
 }
+
 function renderOrders(){
   const list = document.getElementById('ordersList');
-  const empty = document.getElementById('emptyState');
   const toolbar = document.getElementById('toolbar');
+  if(!list||!toolbar)return;
+
   if(orders.length===0){
-    empty.style.display='block';
     toolbar.style.display='none';
-    list.innerHTML='';
-    list.appendChild(empty);
+    list.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Nessun ordine caricato</p></div>';
     return;
   }
-  empty.style.display='none';
   toolbar.style.display='flex';
   list.innerHTML='';
   orders.forEach(o=>list.appendChild(buildCard(o)));
 }
+
 function buildCard(order){
   const card = document.createElement('div');
   card.className = 'order-card';
@@ -407,6 +428,7 @@ function buildCard(order){
   if(order.status==='ok'){badgeClass='badge-ok';badgeText='Pronto';}
   if(order.status==='error'){badgeClass='badge-error';badgeText='Errore';}
   const d = order.data||{};
+
   card.innerHTML = `
   <div class="order-card-header">
     ${order.status==='loading'?'<div class="spinner"></div>':''}
@@ -422,6 +444,7 @@ function buildCard(order){
   `;
   return card;
 }
+
 function buildForm(order){
   const d = order.data;
   const itemsHtml = (d.items||[]).map((it,i)=>`
@@ -435,6 +458,7 @@ function buildForm(order){
     <td><button class="del-row" onclick="delRow('${order.id}',${i})" title="Elimina">×</button></td>
   </tr>
   `).join('');
+
   return `
   <div class="order-card-body">
     ${d._note?`<div class="error-msg" style="background:#fff8e0;color:#856404;border-color:#ffd966">${esc(d._note)}</div>`:''}
@@ -457,6 +481,7 @@ function buildForm(order){
   </div>
   `;
 }
+
 function upd(id,idx,field,val){
   const o = orders.find(x=>x.id===id);
   if(o&&o.data.items[idx])o.data.items[idx][field]=val;
@@ -480,6 +505,7 @@ function removeOrder(id){
 function clearAll(){
   if(confirm('Svuotare la lista?')){orders=[];renderOrders();}
 }
+
 function buildXmlForOrder(order){
   const d = order.data;
   const numbering = d.client?'/'+d.client:'';
@@ -500,8 +526,10 @@ function buildXmlForOrder(order){
         <Total>${total}</Total>
       </Row>`;
   }).join('\n');
+
   const orderDate = convertDate(d.orderDate);
   const expiryDate = convertDate(d.expiryDate);
+
   return `  <Document>
     <CustomerCode></CustomerCode>
     <CustomerName>${esc(d.supplier||'')}</CustomerName>
@@ -541,18 +569,21 @@ ${items}
     </Rows>
   </Document>`;
 }
+
 function convertDate(s){
   if(!s)return '';
   const m = s.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{4})/);
   if(!m)return '';
   return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
 }
+
 function exportOne(id){
   const o = orders.find(x=>x.id===id);
   if(!o||o.status!=='ok')return;
   const xml = xmlHeader()+buildXmlForOrder(o)+'\n  </Documents>\n</EasyfattDocuments>';
   downloadXml(xml, `ordine_${o.data.client||'export'}_${o.data.orderNumber||'N'}.xml`);
 }
+
 function exportAll(){
   const ready = orders.filter(o=>o.status==='ok');
   if(ready.length===0){showToast('Nessun ordine pronto');return;}
@@ -560,9 +591,11 @@ function exportAll(){
   const xml = xmlHeader()+docs+'\n  </Documents>\n</EasyfattDocuments>';
   downloadXml(xml, `ordini_${new Date().toISOString().slice(0,10)}.xml`);
 }
+
 function xmlHeader(){
   return `<?xml version="1.0" encoding="UTF-8"?>\n<EasyfattDocuments AppVersion="2" Creator="Mediterraneo S.r.l." CreatorUrl="" Company="Mediterraneo S.r.l." CompanyAddress="" CompanyPostcode="" CompanyCity="" CompanyProvince="" CompanyCountry="IT" CompanyFiscalCode="" CompanyVatCode="" CompanyTel="" CompanyFax="" CompanyEmail="" CompanyWeb="" CompanyBank1="" CompanyBankIban1="" CompanyBankSwift1="">\n  <Documents>\n`;
 }
+
 function downloadXml(content, filename){
   const blob = new Blob([content],{type:'application/xml'});
   const url = URL.createObjectURL(blob);
@@ -575,10 +608,12 @@ function downloadXml(content, filename){
   URL.revokeObjectURL(url);
   showToast('XML esportato: '+filename);
 }
+
 function esc(s){
   if(s===null||s===undefined)return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
