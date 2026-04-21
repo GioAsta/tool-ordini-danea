@@ -262,11 +262,6 @@ function parseEDEKA(text, lines){
 }
 
 function parseCOLRUYT(text, lines){
-  console.log('=== COLRUYT RAW LINES ===');
-  lines.forEach((l,i)=>console.log(i+': '+l));
-  console.log('=== COLRUYT FULL TEXT SNIPPET ===');
-  const snip = text.indexOf('NO.ART');
-  console.log(text.substring(snip, snip+300));
   const data = {items:[]};
   // Numero ordine
   let m = text.match(/(POF\d+)/);
@@ -279,49 +274,46 @@ function parseCOLRUYT(text, lines){
     data.orderDate = data.expiryDate;
   }
 
-  // Layout COLRUYT: il testo grezzo è:
-  // "NO.ART LIBELLE QUANTITE"
-  // "12868"
-  // "2024/2025"
-  // "BONI CONCEN.TOMATES140G 3300"
-  // Strategia: cerca il blocco dopo "NO.ART" e prima di "Cher fournisseur"
-  const blockM = text.match(/NO\.ART\s+LIBELLE\s+QUANTITE([\s\S]+?)(?:Cher fournisseur|Sinceres salutations|$)/i);
+  // Il testo estratto da pdf.js è tutto su una riga:
+  // "NO.ART  LIBELLE  QUANTITE  12868  2024/2025  BONI CONCEN.TOMATES140G  3300  Sinceres salutations"
+  // Pattern: dopo QUANTITE cerchiamo: CODICE  CONTRATTO  DESCRIZIONE  QTY
+  const blockM = text.match(/NO\.ART\s+LIBELLE\s+QUANTITE\s+(.+?)(?:Sinceres salutations|Cher fournisseur|$)/i);
   if(blockM){
     const block = blockM[1].trim();
-    const blockLines = block.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
-    let i = 0;
-    while(i < blockLines.length){
-      const line = blockLines[i];
-      // Riga con solo codice numerico (es. "12868")
-      if(/^\d{4,6}$/.test(line)){
-        const code = line;
-        // riga successiva potrebbe essere contratto "2024/2025" o descrizione
-        let contratto = '';
-        let j = i+1;
-        if(j < blockLines.length && /^\d{4}\/\d{4}$/.test(blockLines[j])){
-          contratto = blockLines[j];
-          j++;
+    // Cerca pattern: codice(5 cifre) contratto(AAAA/AAAA) descrizione quantità(3-6 cifre finale)
+    const itemRe = /(\d{4,6})\s+(\d{4}\/\d{4})\s+(.+?)\s+(\d{2,6})(?=\s+\d{4,6}\s+\d{4}\/\d{4}|\s*$)/g;
+    let im;
+    while((im = itemRe.exec(block)) !== null){
+      data.items.push({
+        code: im[1],
+        ean: '',
+        description: im[3].trim(),
+        qty: '',
+        cartoni: im[4],
+        um: 'CT',
+        price: '',
+        vat: '10'
+      });
+      if(!data.contractNumber) data.contractNumber = im[2];
+    }
+    // Fallback se non trova il contratto
+    if(data.items.length === 0){
+      const simpleRe = /(\d{4,6})\s+(.+?)\s+(\d{2,6})(?=\s|$)/g;
+      let sm;
+      while((sm = simpleRe.exec(block)) !== null){
+        if(sm[2].length > 3 && !sm[2].match(/^\d{4}\/\d{4}$/)){
+          data.items.push({
+            code: sm[1],
+            ean: '',
+            description: sm[2].trim(),
+            qty: '',
+            cartoni: sm[3],
+            um: 'CT',
+            price: '',
+            vat: '10'
+          });
         }
-        // riga descrizione + quantità: "BONI CONCEN.TOMATES140G 3300"
-        if(j < blockLines.length){
-          const descQty = blockLines[j];
-          const dqM = descQty.match(/^(.+?)\s+(\d{2,6})\s*$/);
-          if(dqM){
-            data.items.push({
-              code: code,
-              ean: '',
-              description: dqM[1].trim(),
-              qty: '',
-              cartoni: dqM[2],
-              um: 'CT',
-              price: '',
-              vat: '10'
-            });
-            if(!data.contractNumber && contratto) data.contractNumber = contratto;
-          }
-          i = j+1;
-        } else { i++; }
-      } else { i++; }
+      }
     }
   }
   return data;
