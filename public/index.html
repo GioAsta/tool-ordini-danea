@@ -620,19 +620,23 @@ function esc(s){
 function exportAllExcel(){
   const ready = orders.filter(o=>o.status==='ok');
   if(ready.length===0){showToast('Nessun ordine pronto');return;}
-  const wb = XLSX.utils.book_new();
+  const header = ['Fornitore','Cliente','N° Ordine','Data Ordine','Data Consegna','N° Contratto','Codice Articolo','Descrizione','Quantità','UM','Prezzo','IVA%'];
+  const rows = [header];
   ready.forEach(o=>{
     const d = o.data;
-    const header = ['Fornitore','Cliente','N° Ordine','Data Ordine','Data Consegna','N° Contratto'];
-    const info = [[d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'']];
-    const itemHeader = ['Codice','Descrizione','Quantità','UM','Prezzo','IVA%'];
-    const itemRows = (d.items||[]).map(it=>[it.code||'',it.description||'',it.qty||'',it.um||'PZ',it.price||'',it.vat||'10']);
-    const wsData = [header,...info,[]  ,itemHeader,...itemRows];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = [{wch:25},{wch:12},{wch:15},{wch:14},{wch:14},{wch:18},{wch:40},{wch:10},{wch:8},{wch:10},{wch:8}];
-    const sheetName = ((d.client||'Ordine')+'_'+(d.orderNumber||'').slice(-6)).replace(/[\\/\*\?\[\]:]/g,'_').substring(0,31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    const items = d.items||[];
+    if(items.length===0){
+      rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'','','','','','','']);
+    } else {
+      items.forEach(it=>{
+        rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'',it.code||'',it.description||'',it.qty||'',it.um||'PZ',it.price||'',it.vat||'10']);
+      });
+    }
   });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:22},{wch:10},{wch:14},{wch:13},{wch:13},{wch:16},{wch:12},{wch:40},{wch:10},{wch:6},{wch:10},{wch:6}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ordini');
   XLSX.writeFile(wb, 'ordini_'+new Date().toISOString().slice(0,10)+'.xlsx');
   showToast('Excel esportato!');
 }
