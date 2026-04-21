@@ -198,7 +198,10 @@ function parseREWE(text, lines){
     // Descrizione: dopo il codice fino a "1 = 0 CT"
     const descM = block.match(new RegExp(positions[i].code+'\\s+(.+?)(?=1\\s*=\\s*0\\s*CT|\\d+[,\\.]\\d+\\s+Cartone)','s'));
     const description = descM?descM[1].replace(/\s+/g,' ').trim():'';
-    // Qtà pezzi: "47,520 Pezzo" o "55,296 Pezzo"
+    // Qtà cartoni: "3,960 Cartone"
+    const cartonM = block.match(/([\d]+(?:[,\.]\d+)?)\s+Cartone/);
+    const cartoni = cartonM?cartonM[1].replace(/\./g,'').replace(',','.'):'';
+    // Qtà pezzi: "47,520 Pezzo"
     const qtyM = block.match(/([\d]+(?:[,\.]\d+)?)\s+Pezzo/);
     const qty = qtyM?qtyM[1].replace(/\./g,'').replace(',','.'):'';
     // Prezzo: "50.00/100" significa 50 per 100 → 0.50/pz
@@ -211,6 +214,7 @@ function parseREWE(text, lines){
       ean:eanM?eanM[1]:'',
       description:description,
       qty:qty,
+      cartoni:cartoni,
       um:'PZ',
       price:price,
       vat:'10'
@@ -242,11 +246,13 @@ function parseEDEKA(text, lines){
       // descrizione: tutto fino a data MHD o "KOA"
       const descM = nextLine.match(/^(.+?)(?=\s+\d{2}\.\d{2}\.\d{4}|\s+KOA|\s+\d{10}|$)/);
       const description = descM?descM[1].trim():nextLine.split(/\s+\d/)[0].trim();
+      // m2[5] = KOA (cartoni), m2[7] = totale pezzi
       data.items.push({
         code:m2[3],
         ean:m2[2],
         description:description,
         qty:m2[7].replace(/\./g,'').replace(',','.'),
+        cartoni:m2[5].replace(/\./g,'').replace(',','.'),
         um:'PZ',
         price:m2[9],
         vat:'10'
@@ -268,17 +274,18 @@ function parseCOLRUYT(text, lines){
   }
 
   // Layout: NO.ART | LIBELLE | QUANTITE
-  // "12868 / 2024/2025 / BONI CONCEN.TOMATES140G / 3300"
+  // Riga dati: "12868  2024/2025  BONI CONCEN.TOMATES140G  3300"
+  // LIBELLE = descrizione, QUANTITE = cartoni
   for(const line of lines){
-    // cerca riga con codice + descrizione + quantità finale
     const mm = line.match(/^(\d{4,6})\s+(?:(\d{4}\/\d{4})\s+)?(.+?)\s+(\d{2,6})\s*$/);
-    if(mm && !mm[3].toUpperCase().includes('LIBELLE') && !mm[3].toUpperCase().includes('QUANTITE') && mm[3].length>5){
+    if(mm && !mm[3].toUpperCase().includes('LIBELLE') && !mm[3].toUpperCase().includes('QUANTITE') && mm[3].length>3){
       data.items.push({
         code:mm[1],
         ean:'',
-        description:mm[3].trim(),
-        qty:mm[4],
-        um:'PZ',
+        description:mm[3].trim(),  // LIBELLE
+        qty:'',                     // pezzi non presenti in COLRUYT
+        cartoni:mm[4],              // QUANTITE = cartoni
+        um:'CT',
         price:'',
         vat:'10'
       });
@@ -454,6 +461,7 @@ function buildForm(order){
     <td><input value="${esc(it.code||'')}" onchange="upd('${order.id}',${i},'code',this.value)" style="width:90px"/></td>
     <td><input value="${esc(it.description||'')}" onchange="upd('${order.id}',${i},'description',this.value)"/></td>
     <td><input value="${esc(it.qty||'')}" onchange="upd('${order.id}',${i},'qty',this.value)" style="width:80px"/></td>
+    <td><input value="${esc(it.cartoni||'')}" onchange="upd('${order.id}',${i},'cartoni',this.value)" style="width:80px"/></td>
     <td><input value="${esc(it.um||'PZ')}" onchange="upd('${order.id}',${i},'um',this.value)" style="width:60px"/></td>
     <td><input value="${esc(it.price||'')}" onchange="upd('${order.id}',${i},'price',this.value)" style="width:90px"/></td>
     <td><input value="${esc(it.vat||'10')}" onchange="upd('${order.id}',${i},'vat',this.value)" style="width:50px"/></td>
@@ -472,7 +480,7 @@ function buildForm(order){
       <div class="field-group"><label>N° Contratto</label><input value="${esc(d.contractNumber||'')}" onchange="updField('${order.id}','contractNumber',this.value)"/></div>
     </div>
     <table class="items-table">
-      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qtà</th><th>UM</th><th>Prezzo</th><th>IVA%</th><th></th></tr></thead>
+      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qtà Pezzi</th><th>Qtà Cartoni</th><th>UM</th><th>Prezzo</th><th>IVA%</th><th></th></tr></thead>
       <tbody>${itemsHtml}</tbody>
     </table>
     <button class="btn btn-secondary btn-small" onclick="addRow('${order.id}')">+ Aggiungi riga</button>
@@ -620,16 +628,16 @@ function esc(s){
 function exportAllExcel(){
   const ready = orders.filter(o=>o.status==='ok');
   if(ready.length===0){showToast('Nessun ordine pronto');return;}
-  const header = ['Fornitore','Cliente','N° Ordine','Data Ordine','Data Consegna','N° Contratto','Codice Articolo','Descrizione','Quantità','UM','Prezzo','IVA%'];
+  const header = ['Fornitore','Cliente','N° Ordine','Data Ordine','Data Consegna','N° Contratto','Codice Articolo','Descrizione','Qtà Pezzi','Qtà Cartoni','UM','Prezzo','IVA%'];
   const rows = [header];
   ready.forEach(o=>{
     const d = o.data;
     const items = d.items||[];
     if(items.length===0){
-      rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'','','','','','','']);
+      rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'','','','','','','','']);
     } else {
       items.forEach(it=>{
-        rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'',it.code||'',it.description||'',it.qty||'',it.um||'PZ',it.price||'',it.vat||'10']);
+        rows.push([d.supplier||'',d.client||'',d.orderNumber||'',d.orderDate||'',d.expiryDate||'',d.contractNumber||'',it.code||'',it.description||'',it.qty||'',it.cartoni||'',it.um||'PZ',it.price||'',it.vat||'10']);
       });
     }
   });
