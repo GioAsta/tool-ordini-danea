@@ -95,8 +95,7 @@ header .offline{font-size:11px;color:#1a7a3a;background:#d4edda;padding:3px 8px;
   </div>
 
   <div class="toolbar" id="toolbar" style="display:none">
-    <button class="btn btn-success" onclick="exportAll()">Esporta tutti in XML</button>
-    <button class="btn btn-primary" onclick="exportAllExcel()">Esporta tutti in Excel</button>
+    <button class="btn btn-success" onclick="exportAllExcel()">Esporta tutti in Excel</button>
     <button class="btn btn-secondary" onclick="clearAll()">Svuota lista</button>
   </div>
 
@@ -263,6 +262,11 @@ function parseEDEKA(text, lines){
 }
 
 function parseCOLRUYT(text, lines){
+  console.log('=== COLRUYT RAW LINES ===');
+  lines.forEach((l,i)=>console.log(i+': '+l));
+  console.log('=== COLRUYT FULL TEXT SNIPPET ===');
+  const snip = text.indexOf('NO.ART');
+  console.log(text.substring(snip, snip+300));
   const data = {items:[]};
   // Numero ordine
   let m = text.match(/(POF\d+)/);
@@ -514,7 +518,6 @@ function buildForm(order){
     </table>
     <button class="btn btn-secondary btn-small" onclick="addRow('${order.id}')">+ Aggiungi riga</button>
     <div class="card-actions">
-      <button class="btn btn-primary btn-small" onclick="exportOne('${order.id}')">Esporta XML</button>
       <button class="btn btn-danger btn-small" onclick="removeOrder('${order.id}')">Rimuovi</button>
     </div>
   </div>
