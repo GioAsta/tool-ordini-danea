@@ -417,7 +417,7 @@ function buildCard(order){
       <div class="client">Cliente: ${esc(d.client||'—')}</div>
     </div>
   </div>
-  ${order.status==='error'<div class="order-card-body"><div class="error-msg">${esc(order.error)}</div><div class="card-actions"><button class="btn btn-danger btn-small" onclick="removeOrder('${order.id}')">Rimuovi</button></div></div>:''}
+  ${order.status==='error'?`<div class="order-card-body"><div class="error-msg">${esc(order.error)}</div><div class="card-actions"><button class="btn btn-danger btn-small" onclick="removeOrder('${order.id}')">Rimuovi</button></div></div>`:''}
   ${order.status==='ok'?buildForm(order):''}
   `;
   return card;
@@ -437,7 +437,7 @@ function buildForm(order){
   `).join('');
   return `
   <div class="order-card-body">
-    ${d._note<div class="error-msg" style="background:#fff8e0;color:#856404;border-color:#ffd966">${esc(d._note)}</div>:''}
+    ${d._note?`<div class="error-msg" style="background:#fff8e0;color:#856404;border-color:#ffd966">${esc(d._note)}</div>`:''}
     <div class="field-grid">
       <div class="field-group"><label>Fornitore</label><input value="${esc(d.supplier||'')}" onchange="updField('${order.id}','supplier',this.value)"/></div>
       <div class="field-group"><label>N° Ordine</label><input value="${esc(d.orderNumber||'')}" onchange="updField('${order.id}','orderNumber',this.value)"/></div>
